@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gocpy IDE</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div id="app">
+  <header id="menubar">
+    <div class="brand"><img src="icon.svg" alt="" width="18" height="18"><span>Gocpy IDE</span></div>
+    <nav class="menus">
+      <div class="menu" data-menu="file">
+        <button class="menu-btn">Файл</button>
+        <div class="dropdown">
+          <button data-cmd="newProject">Новый проект…</button>
+          <button data-cmd="openProject">Открыть проект…<kbd>⌘O</kbd></button>
+          <div class="submenu" id="recent-menu"><button class="has-sub">Недавние проекты</button><div class="dropdown sub" id="recent-list"></div></div>
+          <hr>
+          <button data-cmd="newFile">Новый файл<kbd>⌥⌘N</kbd></button>
+          <button data-cmd="newFolder">Новая папка</button>
+          <hr>
+          <button data-cmd="save">Сохранить файл<kbd>⌘S</kbd></button>
+          <button data-cmd="saveProjectAs">Сохранить проект как…</button>
+          <hr>
+          <button data-cmd="revealProject">Показать проект в Finder</button>
+          <button data-cmd="closeProject">Закрыть проект</button>
+        </div>
+      </div>
+      <div class="menu" data-menu="edit">
+        <button class="menu-btn">Правка</button>
+        <div class="dropdown">
+          <button data-cmd="undo">Отменить<kbd>⌘Z</kbd></button>
+          <button data-cmd="redo">Повторить<kbd>⇧⌘Z</kbd></button>
+          <hr>
+          <button data-cmd="find">Найти / заменить<kbd>⌘F</kbd></button>
+          <button data-cmd="gotoLine">Перейти к строке<kbd>⌃G</kbd></button>
+          <button data-cmd="comment">Закомментировать<kbd>⌘/</kbd></button>
+        </div>
+      </div>
+      <button class="menu-btn" data-cmd="settings">Настройки</button>
+    </nav>
+    <div id="project-title" class="project-title"></div>
+    <div class="run-group">
+      <button id="btn-run" class="btn-run" data-cmd="run" title="Запустить (⌘R / F5)">
+        <svg viewBox="0 0 16 16" width="14" height="14"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>
+        <span>Запустить</span>
+      </button>
+      <button id="btn-stop" class="btn-stop" data-cmd="stop" title="Остановить (⇧F5)" disabled>
+        <svg viewBox="0 0 16 16" width="12" height="12"><rect x="3" y="3" width="10" height="10" rx="1.5" fill="currentColor"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="workbench">
+    <section id="top">
+      <aside id="sidebar">
+        <div class="pane-header">
+          <span class="pane-title">Проводник</span>
+          <div class="pane-actions">
+            <button data-cmd="newFile" title="Новый файл"><svg viewBox="0 0 16 16"><path d="M9.5 1.5H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5z M9.5 1.5V5H13" fill="none" stroke="currentColor"/><path d="M8 7.5v4M6 9.5h4" stroke="currentColor"/></svg></button>
+            <button data-cmd="newFolder" title="Новая папка"><svg viewBox="0 0 16 16"><path d="M1.5 3.5h4.5l1.5 1.5h7v8.5h-13z" fill="none" stroke="currentColor"/><path d="M8 7v4.5M5.75 9.25h4.5" stroke="currentColor"/></svg></button>
+            <button data-cmd="refreshTree" title="Обновить"><svg viewBox="0 0 16 16"><path d="M13 8a5 5 0 1 1-1.5-3.6M13 2v3h-3" fill="none" stroke="currentColor"/></svg></button>
+            <button data-cmd="collapseAll" title="Свернуть всё"><svg viewBox="0 0 16 16"><path d="M4 9l4-4 4 4" fill="none" stroke="currentColor"/><path d="M3 12.5h10" stroke="currentColor"/></svg></button>
+          </div>
+        </div>
+        <div id="tree" tabindex="0"></div>
+      </aside>
+      <div class="splitter vertical" id="split-side"></div>
+      <section id="editor-pane">
+        <div id="editor-header">
+          <div id="breadcrumbs"></div>
+          <div id="dirty-indicator" title="Есть несохранённые изменения"></div>
+        </div>
+        <div id="editor-host">
+          <div id="editor"></div>
+          <div id="welcome"></div>
+        </div>
+      </section>
+    </section>
+    <div class="splitter horizontal" id="split-bottom"></div>
+    <section id="bottom">
+      <div class="panel" id="panel-shell">
+        <div class="pane-header">
+          <span class="pane-title">Терминал</span>
+          <span class="pane-sub" id="shell-cwd"></span>
+          <div class="pane-actions">
+            <button data-cmd="clearShell" title="Очистить"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5" fill="none" stroke="currentColor"/><path d="M4.2 11.8l7.6-7.6" stroke="currentColor"/></svg></button>
+            <button data-cmd="restartShell" title="Перезапустить shell"><svg viewBox="0 0 16 16"><path d="M13 8a5 5 0 1 1-1.5-3.6M13 2v3h-3" fill="none" stroke="currentColor"/></svg></button>
+          </div>
+        </div>
+        <div class="term" id="term-shell"></div>
+      </div>
+      <div class="splitter vertical" id="split-terms"></div>
+      <div class="panel" id="panel-run">
+        <div class="pane-header">
+          <span class="pane-title">Вывод программы</span>
+          <span class="run-status" id="run-status"></span>
+          <div class="pane-actions">
+            <button data-cmd="clearRun" title="Очистить"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5" fill="none" stroke="currentColor"/><path d="M4.2 11.8l7.6-7.6" stroke="currentColor"/></svg></button>
+          </div>
+        </div>
+        <div class="term" id="term-run"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer id="statusbar">
+    <span id="sb-project"></span>
+    <span id="sb-run"></span>
+    <span class="grow"></span>
+    <span id="sb-cursor"></span>
+    <span id="sb-indent"></span>
+    <span id="sb-lang"></span>
+    <span>UTF-8</span>
+  </footer>
+</div>
+<div id="overlay"></div>
+<div id="ctxmenu" class="dropdown ctx"></div>
+<div id="toasts"></div>
+<script src="app.js"></script>
+</body>
+</html>
